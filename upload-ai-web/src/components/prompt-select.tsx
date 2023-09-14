@@ -1,0 +1,63 @@
+import { api } from "@/lib/axios";
+import { 
+  Select, 
+  SelectTrigger, 
+  SelectValue, 
+  SelectContent, 
+  SelectItem 
+} from "./ui/select";
+import { useEffect, useState } from "react";
+
+interface Prompt {
+  id: string
+  title: string
+  template: string
+}
+
+interface PromptSelectProps {
+  onPromptSelected: (template: string) => void
+}
+
+export function PromptSelect(props: PromptSelectProps) {
+  const [prompts, setPrompts] = useState<Prompt[] | null>(null)
+
+  useEffect(() => {
+    async function fetchPrompts () {
+      const response = await api.get('/prompts')
+
+      setPrompts(response.data)
+    }
+    fetchPrompts()
+  }, [])
+
+  function  handlePromptSelected(promptId: string) {
+    const selectedPrompt = prompts?.find(prompt => prompt.id === promptId)
+
+    if (!selectedPrompt) {
+      return
+    }
+
+    props.onPromptSelected(selectedPrompt.template)
+  }
+
+  return (
+    <Select onValueChange={handlePromptSelected} >
+      <SelectTrigger>
+        <SelectValue placeholder="Selecione um prompt..."/>
+      </SelectTrigger>
+      <SelectContent>
+        {prompts && prompts.map((prompt) => {
+          return (
+            <SelectItem 
+              key={prompt.id} 
+              value={prompt.id}
+              className="cursor-pointer"
+            >
+              {prompt.title}
+            </SelectItem>
+          )
+        })}
+      </SelectContent>
+  </Select>
+  )
+}
